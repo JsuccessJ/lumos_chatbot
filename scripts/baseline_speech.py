@@ -6,7 +6,7 @@ import sys
 from google.cloud import speech
 
 import pyaudio
-
+# key값 주의
 # Audio recording parameters
 RATE = 16000
 CHUNK = int(RATE / 10)  # 100ms
