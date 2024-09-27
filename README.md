@@ -11,10 +11,10 @@
   
 ### 💾 **Memory Functionality Implementation**
 - Successfully implemented memory features for the chatbot.
+  ![image](https://github.com/user-attachments/assets/f5f1762d-16b1-4459-ab54-963acc3d4585)
 
 ### 🔍 **Reducing Hallucination with RAG**
 **📅 Objective:** *Ensure accurate information retrieval (아래 예시 실제 정답 : 98)*
-  ![image](https://github.com/user-attachments/assets/f5f1762d-16b1-4459-ab54-963acc3d4585)
 
 - **Using RAG**  
   ![image](https://github.com/user-attachments/assets/a089db61-003f-4f42-989b-3ef41f3f8d57)
