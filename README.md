@@ -22,10 +22,10 @@
 - **Comparison with Standard GPT**  
   ![image](https://github.com/user-attachments/assets/8bc229b7-8f1a-4191-932f-6d8c153d77f2)
 
-## 🗣️ **Voice Integration (TTS)**
+## 🗣️ **Voice Integration (Speech to Speech)**
 **📅 Timeline:** *Starting from 2024.09.27*
 
 - **Scenario:**  
-  **BOT:** "상대 정글 플레이어 7시 방향"  
+  **I:** "상대 정글 플레이어 7시 방향"  
   *30 seconds later*  
   **BOT:** "상대 정글 출현 후 30초가 지났습니다."
