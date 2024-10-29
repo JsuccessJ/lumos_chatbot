@@ -60,23 +60,39 @@ def select_easy(champnum, wchamp):
         # 오류 발생 시 상태 코드와 오류 메시지 출력
         return f"Error {response.status_code}: {response.reason}"
 
-# 수정된 텍스트 파싱 함수
-def parse_text(text, our_champion_name):
+# 수정된 parse_text 함수
+def parse_text(text, our_champion_name, is_easy=False):
     entries = {}
-    # 정규 표현식을 사용하여 상대 챔피언 이름과 조언 추출
-    pattern = re.compile(r'([\w\s]+)\s*>\s*' + re.escape(our_champion_name) + r'\s*(.*?)\s*(?:【.*?】)?\s*-.*?x\s*\d+', re.DOTALL)
+    if is_easy:
+        # Easy 데이터에 맞는 정규 표현식 수정
+        pattern = re.compile(
+            re.escape(our_champion_name) +
+            r'\s*>\s*([^\n]+?)\n(.*?)\s*-.*?x\s*\d+',
+            re.DOTALL
+        )
+    else:
+        # Counter 데이터에 맞는 정규 표현식 수정
+        pattern = re.compile(
+            r'([^\n]+?)\s*>\s*' +
+            re.escape(our_champion_name) +
+            r'\s*(.*?)\s*-.*?x\s*\d+',
+            re.DOTALL
+        )
+
     matches = pattern.findall(text)
     for match in matches:
         opponent_name = match[0].strip()
         advice = match[1].strip()
         # 불필요한 내용 제거
-        advice = re.sub(r'【.*?】', '', advice)  # 【 】 안의 내용 제거
-        advice = re.sub(r'-.*?x\s*\d+', '', advice)  # - 작성자 x 점수 제거
+        advice = re.sub(r'【.*?】', '', advice)
         advice = advice.strip()
         if opponent_name not in entries:
             entries[opponent_name] = []
         entries[opponent_name].append(advice)
     return entries
+
+
+
 
 # Step 4: 웹 페이지에서 챔피언 번호와 이름을 추출하고 Counter, Easy API 호출
 def fetch_champion_data():
@@ -111,7 +127,7 @@ def fetch_champion_data():
         # 텍스트 파싱하여 딕셔너리 형태로 저장
         counter_entries = {}
         for text in counter_info_raw:
-            entries = parse_text(text, champ_name)
+            entries = parse_text(text, champ_name, is_easy=False)
             for opponent_name, advices in entries.items():
                 if opponent_name not in counter_entries:
                     counter_entries[opponent_name] = []
@@ -119,7 +135,7 @@ def fetch_champion_data():
         
         easy_entries = {}
         for text in easy_info_raw:
-            entries = parse_text(text, champ_name)
+            entries = parse_text(text, champ_name, is_easy=True)
             for opponent_name, advices in entries.items():
                 if opponent_name not in easy_entries:
                     easy_entries[opponent_name] = []
@@ -134,6 +150,7 @@ def fetch_champion_data():
         })
     
     return champion_data
+
 
 # 실행
 if __name__ == "__main__":
