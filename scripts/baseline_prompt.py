@@ -19,24 +19,28 @@ from langchain.chains.combine_documents import create_stuff_documents_chain
 
 
 
-openai.api_key = "## API ##"
+openai.api_key = "api"
 
 
-EMBEDDING_FILE = 'embeddings.pkl'
+EMBEDDING_FILE = '/Users/hwangjaesung/jaesung/StudyRoom/Study/lumos_chatbot/data/embeddings_counter.pkl'
 
 
-with open('/data/jaesunghwang/llmtest/dataset/champions_data_final.json', 'r', encoding='utf-8') as f:
+with open('/Users/hwangjaesung/jaesung/StudyRoom/Study/lumos_chatbot/data/merged_champions_data.json', 'r', encoding='utf-8') as f:
     champions_data = json.load(f)
 
 # 챔피언 별로 Document로 변환
 documents = []
 for champion_name, champion_info in champions_data.items():
     champion_text = f"챔피언: {champion_info['name']}\n" \
-                    f"키: {champion_info['key']}\n" \
+                    f"ddragon_key: {champion_info['ddragon_key']}\n" \
                     f"설명: {champion_info['description']}\n" \
                     f"스탯: {json.dumps(champion_info['stats'], ensure_ascii=False)}\n" \
-                    f"스킬: {json.dumps(champion_info['skills'], ensure_ascii=False)}"
-    doc = Document(page_content=champion_text, metadata={"champion_name": champion_name, "key": champion_info['key']})
+                    f"스킬: {json.dumps(champion_info['skills'], ensure_ascii=False)}\n" \
+                    f"Counter: {json.dumps(champion_info['counter'], ensure_ascii=False)}" \
+                    f"Easy: {json.dumps(champion_info['easy'], ensure_ascii=False)}" 
+                        
+                        
+    doc = Document(page_content=champion_text, metadata={"champion_name": champion_name, "key": champion_info['ddragon_key']})
     documents.append(doc)
 
 # print(documents[0])
