@@ -22,6 +22,8 @@
 - **Comparison with Standard GPT**  
   ![image](https://github.com/user-attachments/assets/8bc229b7-8f1a-4191-932f-6d8c153d77f2)
 
+- **Counter/Easy Character + Basic information merge success // 24.11.04**  
+
 ## 🗣️ **Voice Integration (Speech to Speech)**
 **📅 Timeline:** *Starting from 2024.09.27*
 
