@@ -136,21 +136,32 @@ question_answer_chain = create_stuff_documents_chain(llm, qa_prompt)
 rag_chain = create_retrieval_chain(history_aware_retriever, question_answer_chain)
 store = {}
 
+# def get_session_history(session_id: str) -> BaseChatMessageHistory:
+#     if session_id not in store:
+#         store[session_id] = ChatMessageHistory()
+#     return store[session_id]
+
+# 최대 대화 히스토리 길이 설정 (전체 대화 기록 저장을 위해 이 값을 제거)
+MAX_CHAT_HISTORY_LENGTH = None  # None으로 설정하면 대화 기록 삭제 제한 없음
+
+# 세션 히스토리 관리 함수
 def get_session_history(session_id: str) -> BaseChatMessageHistory:
     if session_id not in store:
         store[session_id] = ChatMessageHistory()
-    return store[session_id]
+    chat_history = store[session_id]
+    
+    # 최대 대화 길이가 설정된 경우에만 제한 적용
+    if MAX_CHAT_HISTORY_LENGTH is not None and len(chat_history.messages) > MAX_CHAT_HISTORY_LENGTH:
+        # 오래된 메시지 제거 (최대 길이 초과 시)
+        chat_history.messages = chat_history.messages[-MAX_CHAT_HISTORY_LENGTH:]
+    
+    return chat_history
 
-
-
-conversational_rag_chain = RunnableWithMessageHistory(
-    rag_chain,
-    get_session_history,
-    input_messages_key="input",
-    history_messages_key="chat_history",
-    output_messages_key="answer",
-)
-
+# 특정 개수의 최신 대화 기록을 조회하는 함수
+def get_recent_chat_history(session_id: str, n: int):
+    chat_history = get_session_history(session_id)
+    # 최신 n개의 대화만 반환 (n이 채팅 기록보다 크면 전체 기록 반환)
+    return chat_history.messages[-n:]
 
 # 사용자 질문 처리 함수
 def ask_question_conversational(session_id, question):
@@ -163,17 +174,46 @@ def ask_question_conversational(session_id, question):
     )
     return result["answer"]
 
+conversational_rag_chain = RunnableWithMessageHistory(
+    rag_chain,
+    get_session_history,
+    input_messages_key="input",
+    history_messages_key="chat_history",
+    output_messages_key="answer",
+)
 
 
+
+
+# if __name__ == "__main__":
+#     session_id = "abc123"  # 특정 사용자 세션 ID를 설정 (필요에 따라 동적으로 설정 가능)
+    
+#     while True:
+#         user_input = input("질문을 입력하세요 ('종료' 입력 시 종료): ")
+#         if user_input.lower() in ['종료', 'exit', 'quit']:
+#             break
+        
+#         # 사용자 질문을 처리하여 답변 생성
+#         answer = ask_question_conversational(session_id, user_input)
+#         print(f"답변: {answer}\n")
+
+# history 추가한 실행문
 if __name__ == "__main__":
     session_id = "abc123"  # 특정 사용자 세션 ID를 설정 (필요에 따라 동적으로 설정 가능)
     
     while True:
-        user_input = input("질문을 입력하세요 ('종료' 입력 시 종료): ")
+        user_input = input("질문을 입력하세요 ('종료' 입력 시 종료, '히스토리' 입력 시 대화기록 확인): ")
         if user_input.lower() in ['종료', 'exit', 'quit']:
             break
+        elif user_input.lower() == '히스토리':
+            n = int(input("확인할 대화 기록 개수를 입력하세요: "))
+            history = get_recent_chat_history(session_id, n)
+            print("최근 대화 기록:")
+            for message in history:
+                print(f"{message.type}: {message.content}")
+            print("\n")
+            continue
         
         # 사용자 질문을 처리하여 답변 생성
         answer = ask_question_conversational(session_id, user_input)
         print(f"답변: {answer}\n")
-
