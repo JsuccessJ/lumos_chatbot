@@ -22,7 +22,7 @@ from langchain.chains.combine_documents import create_stuff_documents_chain
 openai.api_key = "api"
 
 
-EMBEDDING_FILE = '/Users/hwangjaesung/jaesung/StudyRoom/Study/lumos_chatbot/data/embeddings_counter.pkl'
+EMBEDDING_FILE = 'api'
 
 
 with open('/Users/hwangjaesung/jaesung/StudyRoom/Study/lumos_chatbot/data/merged_champions_data.json', 'r', encoding='utf-8') as f:
