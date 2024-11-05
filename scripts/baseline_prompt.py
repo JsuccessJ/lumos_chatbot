@@ -87,7 +87,7 @@ retriever = vector_store.as_retriever(search_kwargs={"k": 1})
 # print(docs)
 
 llm = ChatOpenAI(
-    model="gpt-3.5-turbo",
+    model="gpt-4o-mini",
     temperature=1.0,
     max_tokens=1024,
     top_p=0.95,
