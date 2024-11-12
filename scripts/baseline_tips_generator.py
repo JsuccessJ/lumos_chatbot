@@ -104,7 +104,7 @@ with tqdm(total=len(champions) * (len(champions) - 1), desc="Generating tips") a
         champion_tips[champ] = tips_for_champ
 
 
-with open('champion_tips2.json', 'w', encoding='utf-8') as json_file:
+with open('champion_tips.json', 'w', encoding='utf-8') as json_file:
     json.dump(champion_tips, json_file, ensure_ascii=False, indent=4)
 
 # 최종 토큰 사용량 합계
