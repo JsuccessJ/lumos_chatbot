@@ -157,7 +157,7 @@ if __name__ == "__main__":
     champ_data = fetch_champion_data()
     
     # 챔피언 데이터를 JSON 파일로 저장
-    with open('champion_data.json', 'w', encoding='utf-8') as f:
+    with open('/Users/hwangjaesung/jaesung/StudyRoom/Study/lumos_chatbot_fork/lumos_chatbot/data/14.22/14.22_champion_data_counter_favorable.json', 'w', encoding='utf-8') as f:
         json.dump(champ_data, f, ensure_ascii=False, indent=4)
     
-    print("챔피언 데이터가 'champion_data.json' 파일에 저장되었습니다.")
+    print("챔피언 데이터가 'champion_data_counter_favorable.json' 파일에 저장되었습니다.")

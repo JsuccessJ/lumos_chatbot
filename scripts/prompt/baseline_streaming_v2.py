@@ -17,11 +17,11 @@ from langchain.chains.combine_documents import create_stuff_documents_chain
 
 openai.api_key = "api"
 
-CHAMP_EMBEDDING_FILE = '/Users/hwangjaesung/jaesung/StudyRoom/Study/lumos_chatbot_fork/lumos_chatbot/data/embeddings_counter.pkl'
-ITEM_EMBEDDING_FILE = '/Users/hwangjaesung/jaesung/StudyRoom/Study/lumos_chatbot_fork/lumos_chatbot/data/embeddings_item.pkl'
+CHAMP_EMBEDDING_FILE = '/Users/hwangjaesung/jaesung/StudyRoom/Study/lumos_chatbot_fork/lumos_chatbot/data/pkl/embeddings_counter.pkl'
+ITEM_EMBEDDING_FILE = '/Users/hwangjaesung/jaesung/StudyRoom/Study/lumos_chatbot_fork/lumos_chatbot/data/pkl/embeddings_item.pkl'
 
 # 챔피언 데이터 로드
-with open('/Users/hwangjaesung/jaesung/StudyRoom/Study/lumos_chatbot/data/merged_champions_data.json', 'r', encoding='utf-8') as f:
+with open('/Users/hwangjaesung/jaesung/StudyRoom/Study/lumos_chatbot_fork/lumos_chatbot/data/~14.21/14.21_merged_champions_data.json', 'r', encoding='utf-8') as f:
     champions_data = json.load(f)
 
 # 챔피언 데이터를 Document로 변환
@@ -38,7 +38,7 @@ for champion_name, champion_info in champions_data.items():
     documents.append(doc)
 
 # 아이템 데이터 로드
-with open('/Users/hwangjaesung/jaesung/StudyRoom/Study/lumos_chatbot/data/items.json', 'r', encoding='utf-8') as f:
+with open('/Users/hwangjaesung/jaesung/StudyRoom/Study/lumos_chatbot_fork/lumos_chatbot/data/~14.21/14.21_items.json', 'r', encoding='utf-8') as f:
     items_data = json.load(f)
 
 # 아이템 데이터를 Document로 변환

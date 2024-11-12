@@ -1,11 +1,11 @@
 import json
 
 # Load the existing champion data
-with open("../data/champions_data2.json", "r", encoding="utf-8") as f:
+with open("/Users/hwangjaesung/jaesung/StudyRoom/Study/lumos_chatbot_fork/lumos_chatbot/data/14.22/14.22_champions_data.json", "r", encoding="utf-8") as f:
     champions_data = json.load(f)
 
 # Load the additional counter/easy data
-with open("../data/champion_data_counter_favorable.json", "r", encoding="utf-8") as f:
+with open("/Users/hwangjaesung/jaesung/StudyRoom/Study/lumos_chatbot_fork/lumos_chatbot/data/14.22/14.22_champion_data_counter_favorable.json", "r", encoding="utf-8") as f:
     counter_easy_data = json.load(f)
 
 # Iterate over the counter/easy data to match and merge with the main champion data
@@ -21,7 +21,7 @@ for counter_easy_entry in counter_easy_data:
             break
 
 # Save the merged data to a new JSON file
-with open("merged_champions_data.json", "w", encoding="utf-8") as f:
+with open("/Users/hwangjaesung/jaesung/StudyRoom/Study/lumos_chatbot_fork/lumos_chatbot/data/14.22/14.22_merged_champions_data.json", "w", encoding="utf-8") as f:
     json.dump(champions_data, f, ensure_ascii=False, indent=4)
 
 print("Data successfully merged into 'merged_champions_data.json'.")

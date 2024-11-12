@@ -34,7 +34,7 @@ if response.status_code == 200:
         })
 
     # Save the data into a JSON file
-    with open('items.json', 'w', encoding='utf-8') as f:
+    with open('14.22_items.json', 'w', encoding='utf-8') as f:
         json.dump(item_data, f, ensure_ascii=False, indent=4)
 
     print("Item data saved to items.json")

@@ -1,8 +1,8 @@
 import requests
 from bs4 import BeautifulSoup
 import json
-
-
+# crawler_champion1과 다른 점 
+# champion_id, ddragon_key 추가
 def crawl(url, ddragon, champion_id):
     """
     에러 반환 : None, 에러 메시지
@@ -97,10 +97,10 @@ def crawl(url, ddragon, champion_id):
 
 if __name__ == "__main__":
     base_url = "https://lol.inven.co.kr/dataninfo/champion/detail.php?code={}"
-    ddragon = json.load(open("ddragon.json", "r", encoding="utf-8"))
+    ddragon = json.load(open("/Users/hwangjaesung/jaesung/StudyRoom/Study/lumos_chatbot_fork/lumos_chatbot/data/14.22/14.22_ddragon.json", "r", encoding="utf-8"))
     all_champions = {}
-    for i in range(1, 168 + 1):
-        print(f"Crawling {i} / 168")
+    for i in range(1, 169 + 1):
+        print(f"Crawling {i} / 169")
         url = base_url.format(i)
         champion_data, error = crawl(url, ddragon, champion_id=str(i))
         if champion_data:
@@ -108,5 +108,5 @@ if __name__ == "__main__":
         else:
             print(f"오류 발생: {error}")
 
-    with open("champions_data2.json", "w", encoding="utf-8") as f:
+    with open("14.22_champions_data.json", "w", encoding="utf-8") as f:
         json.dump(all_champions, f, ensure_ascii=False, indent=4)
