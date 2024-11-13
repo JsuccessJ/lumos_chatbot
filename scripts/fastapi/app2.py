@@ -6,15 +6,15 @@ from langchain.schema import Document
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings
 from langchain_openai import ChatOpenAI
-from langchain.prompts import ChatPromptTemplate
+from langchain.prompts import PromptTemplate
+from langchain.chains import RetrievalQA
+from langchain_community.chat_message_histories import ChatMessageHistory
+from langchain_core.chat_history import BaseChatMessageHistory
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.runnables.history import RunnableWithMessageHistory
 from langchain.chains import create_history_aware_retriever, create_retrieval_chain
 from langchain.chains.combine_documents import create_stuff_documents_chain
-from langchain_core.chat_history import BaseChatMessageHistory
-from langchain_community.chat_message_histories import ChatMessageHistory
-from langchain_core.prompts import MessagesPlaceholder
-from langchain_core.runnables.history import RunnableWithMessageHistory
-
-from fastapi import FastAPI, WebSocket, HTTPException
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
 # OpenAI API 키 설정
@@ -27,11 +27,10 @@ app = FastAPI()
 CHAMP_EMBEDDING_FILE = '/Users/hwangjaesung/jaesung/StudyRoom/Study/lumos_chatbot_fork/lumos_chatbot/data/14.22_embeddings_counter.pkl'
 ITEM_EMBEDDING_FILE = '/Users/hwangjaesung/jaesung/StudyRoom/Study/lumos_chatbot_fork/lumos_chatbot/data/14.22_embeddings_item.pkl'
 
-# 챔피언 데이터 로드
+# 챔피언 데이터 로드 및 Document 변환
 with open('/Users/hwangjaesung/jaesung/StudyRoom/Study/lumos_chatbot_fork/lumos_chatbot/data/14.22/14.22_merged_champions_data.json', 'r', encoding='utf-8') as f:
     champions_data = json.load(f)
 
-# 챔피언 데이터를 Document로 변환
 documents = []
 for champion_name, champion_info in champions_data.items():
     champion_text = f"챔피언: {champion_info['name']}\n" \
@@ -44,11 +43,10 @@ for champion_name, champion_info in champions_data.items():
     doc = Document(page_content=champion_text, metadata={"champion_name": champion_name, "key": champion_info['ddragon_key']})
     documents.append(doc)
 
-# 아이템 데이터 로드
+# 아이템 데이터 로드 및 Document 변환
 with open('/Users/hwangjaesung/jaesung/StudyRoom/Study/lumos_chatbot_fork/lumos_chatbot/data/14.22/14.22_items.json', 'r', encoding='utf-8') as f:
     items_data = json.load(f)
 
-# 아이템 데이터를 Document로 변환
 item_documents = []
 for item in items_data:
     item_text = f"아이템 이름: {item['name']}\n" \
@@ -57,7 +55,7 @@ for item in items_data:
     doc = Document(page_content=item_text, metadata={"item_name": item['name']})
     item_documents.append(doc)
 
-# 임베딩 저장 및 불러오기 함수
+# 임베딩 생성 함수
 def save_embeddings(embedding_dict, file_path):
     with open(file_path, 'wb') as f:
         pickle.dump(embedding_dict, f)
@@ -71,29 +69,22 @@ def load_embeddings(file_path):
 # OpenAI 임베딩 모델 설정
 embedding_model = OpenAIEmbeddings(model="text-embedding-ada-002", openai_api_key=openai.api_key)
 
-# 챔피언 임베딩 로드 또는 생성
+# 챔피언 및 아이템 임베딩 로드 또는 생성
 embedding_dict = load_embeddings(CHAMP_EMBEDDING_FILE)
 if embedding_dict is None:
     texts = [doc.page_content for doc in documents]
     embeddings = embedding_model.embed_documents(texts)
     embedding_dict = {doc.metadata['champion_name']: embedding for doc, embedding in zip(documents, embeddings)}
     save_embeddings(embedding_dict, CHAMP_EMBEDDING_FILE)
-    print("챔피언 임베딩을 생성하고 저장했습니다.")
-else:
-    print("챔피언 임베딩을 불러왔습니다.")
 
-# 아이템 임베딩 로드 또는 생성
 item_embedding_dict = load_embeddings(ITEM_EMBEDDING_FILE)
 if item_embedding_dict is None:
     item_texts = [doc.page_content for doc in item_documents]
     item_embeddings = embedding_model.embed_documents(item_texts)
     item_embedding_dict = {doc.metadata['item_name']: embedding for doc, embedding in zip(item_documents, item_embeddings)}
     save_embeddings(item_embedding_dict, ITEM_EMBEDDING_FILE)
-    print("아이템 임베딩을 생성하고 저장했습니다.")
-else:
-    print("아이템 임베딩을 불러왔습니다.")
 
-# 벡터 스토어 생성 및 검색기 설정
+# 벡터 스토어 설정
 all_documents = documents + item_documents
 vector_store = FAISS.from_documents(all_documents, embedding_model)
 retriever = vector_store.as_retriever(search_kwargs={"k": 1})
@@ -108,33 +99,19 @@ llm = ChatOpenAI(
     streaming=True
 )
 
-# 프롬프트 설정
-contextualize_q_system_prompt = (
-    "Given a chat history and the latest user question "
-    "which might reference context in the chat history, "
-    "formulate a standalone question which can be understood "
-    "without the chat history."
-)
+# 프롬프트 및 체인 설정
 contextualize_q_prompt = ChatPromptTemplate.from_messages(
     [
-        ("system", contextualize_q_system_prompt),
+        ("system", "Given a chat history and the latest user question which might reference context in the chat history, formulate a standalone question which can be understood without the chat history."),
         MessagesPlaceholder("chat_history"),
         ("human", "{input}"),
     ]
 )
 
 history_aware_retriever = create_history_aware_retriever(llm, retriever, contextualize_q_prompt)
-
-system_prompt = (
-    "You are an assistant for question-answering tasks. "
-    "Use the following pieces of retrieved context to answer "
-    "the question."
-    "\n\n"
-    "{context}"
-)
 qa_prompt = ChatPromptTemplate.from_messages(
     [
-        ("system", system_prompt),
+        ("system", "You are an assistant for question-answering tasks. Use the following pieces of retrieved context to answer the question.\n\n{context}"),
         MessagesPlaceholder("chat_history"),
         ("human", "{input}"),
     ]
@@ -143,7 +120,6 @@ qa_prompt = ChatPromptTemplate.from_messages(
 question_answer_chain = create_stuff_documents_chain(llm, qa_prompt)
 rag_chain = create_retrieval_chain(history_aware_retriever, question_answer_chain)
 
-# 세션 관리 및 대화 이력 관리 함수
 store = {}
 MAX_CHAT_HISTORY_LENGTH = None
 
@@ -163,56 +139,28 @@ conversational_rag_chain = RunnableWithMessageHistory(
     output_messages_key="answer",
 )
 
-# POST 요청으로 질문 받기
+# 요청 데이터 모델 정의
 class QuestionRequest(BaseModel):
     question: str
-    session_id: str
 
+# API 엔드포인트 정의
 @app.post("/ask")
 async def ask_question(request: QuestionRequest):
     try:
         question = request.question
-        session_id = request.session_id
-
         response = ""
         for chunk in conversational_rag_chain.stream(
             {"input": question},
             config={
-                "configurable": {"session_id": session_id}
+                "configurable": {"session_id": "abc123"}
             }
         ):
             if 'answer' in chunk and chunk['answer']:
                 response += chunk["answer"]
-        
         return {"answer": response}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# WebSocket을 통한 실시간 스트리밍 응답
-@app.websocket("/ws")
-async def websocket_endpoint(websocket: WebSocket):
-    await websocket.accept()
-    session_id = "abc123"
-    
-    while True:
-        data = await websocket.receive_text()
-        if data.lower() in ["exit", "quit", "종료"]:
-            break
-        
-        response = ""
-        for chunk in conversational_rag_chain.stream(
-            {"input": data},
-            config={
-                "configurable": {"session_id": session_id}
-            }
-        ):
-            if 'answer' in chunk and chunk['answer']:
-                await websocket.send_text(chunk["answer"])
-        
-    await websocket.close()
-
-# FastAPI 서버 실행
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+# 서버 실행: 터미널에서 다음 명령어로 실행
+# uvicorn app:app --host 0.0.0.0 --port 8000 --reload
