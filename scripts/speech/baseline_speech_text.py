@@ -163,7 +163,7 @@ def listen_print_loop(responses: object) -> str:
 
             # Exit recognition if any of the transcribed phrases could be
             # one of our keywords.
-            if re.search(r"\b(exit|quit)\b", transcript, re.I):
+            if re.search(r"\b(종료|스탑)\b", transcript, re.I):
                 print("Exiting..")
                 break
 
@@ -175,7 +175,7 @@ def main() -> None:
     """Transcribe speech from audio file."""
     # See http://g.co/cloud/speech/docs/languages
     # for a list of supported languages.
-    language_code = "en-US"  # a BCP-47 language tag
+    language_code = "ko-KR"  # a BCP-47 language tag
 
     client = speech.SpeechClient()
     config = speech.RecognitionConfig(

@@ -150,7 +150,7 @@ def listen_print_loop(responses, stream):
                 # 최종 인식 결과 출력
                 print(transcript + overwrite_chars)
 
-                if re.search(r'\b(exit|quit)\b', transcript, re.I):
+                if re.search(r'\b(종료|스탑)\b', transcript, re.I):
                     print('프로그램을 종료합니다.')
                     sys.exit(0)  # 프로그램 완전 종료
 
