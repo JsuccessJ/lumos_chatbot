@@ -15,8 +15,6 @@ from langchain_core.prompts import MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
 
 from fastapi import FastAPI, WebSocket, HTTPException
-from fastapi.responses import PlainTextResponse  # PlainTextResponse 추가
-from fastapi.middleware.cors import CORSMiddleware  # 추가
 from pydantic import BaseModel
 
 # OpenAI API 키 설정
@@ -25,20 +23,12 @@ openai.api_key = "api"
 # FastAPI 애플리케이션 초기화
 app = FastAPI()
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://lolpago.gg"], # Todo: 배포할때 localhost:3000 지우기 
-    allow_credentials=True,
-    allow_methods=["*"],  # 모든 HTTP 메서드 허용
-    allow_headers=["*"],  # 모든 헤더 허용
-)
-
 # 챔피언 및 아이템 데이터 파일 경로
-CHAMP_EMBEDDING_FILE = 'C:/lumos_chatbot/data/14.22_embeddings_counter.pkl'
-ITEM_EMBEDDING_FILE = 'C:/lumos_chatbot/data/14.22_embeddings_item.pkl'
+CHAMP_EMBEDDING_FILE = '/Users/hwangjaesung/jaesung/StudyRoom/Study/lumos_chatbot_fork/lumos_chatbot/data/14.22_embeddings_counter.pkl'
+ITEM_EMBEDDING_FILE = '/Users/hwangjaesung/jaesung/StudyRoom/Study/lumos_chatbot_fork/lumos_chatbot/data/14.22_embeddings_item.pkl'
 
 # 챔피언 데이터 로드
-with open('C:/lumos_chatbot/data/14.22/14.22_merged_champions_data.json', 'r', encoding='utf-8') as f:
+with open('/Users/hwangjaesung/jaesung/StudyRoom/Study/lumos_chatbot_fork/lumos_chatbot/data/14.22/14.22_merged_champions_data.json', 'r', encoding='utf-8') as f:
     champions_data = json.load(f)
 
 # 챔피언 데이터를 Document로 변환
@@ -55,7 +45,7 @@ for champion_name, champion_info in champions_data.items():
     documents.append(doc)
 
 # 아이템 데이터 로드
-with open('C:/lumos_chatbot/data/14.22/14.22_items.json', 'r', encoding='utf-8') as f:
+with open('/Users/hwangjaesung/jaesung/StudyRoom/Study/lumos_chatbot_fork/lumos_chatbot/data/14.22/14.22_items.json', 'r', encoding='utf-8') as f:
     items_data = json.load(f)
 
 # 아이템 데이터를 Document로 변환
@@ -106,13 +96,13 @@ else:
 # 벡터 스토어 생성 및 검색기 설정
 all_documents = documents + item_documents
 vector_store = FAISS.from_documents(all_documents, embedding_model)
-retriever = vector_store.as_retriever(search_kwargs={"k": 3}) # 문서 3개로 변경
+retriever = vector_store.as_retriever(search_kwargs={"k": 3})
 
 # LLM 설정
 llm = ChatOpenAI(
     model="gpt-4o-mini",
     temperature=1.0,
-    max_tokens=512, # 512 변경
+    max_tokens=512,
     top_p=1.0,
     openai_api_key=openai.api_key,
     streaming=True
@@ -134,14 +124,6 @@ contextualize_q_prompt = ChatPromptTemplate.from_messages(
 )
 
 history_aware_retriever = create_history_aware_retriever(llm, retriever, contextualize_q_prompt)
-
-# system_prompt = (
-#     "You are an assistant for question-answering tasks. "
-#     "Use the following pieces of retrieved context to answer "
-#     "the question."
-#     "\n\n"
-#     "{context}"
-# )
 
 # 프롬프트 변경
 system_prompt = (
@@ -210,7 +192,6 @@ system_prompt = (
 "{context}"
 )
 
-
 qa_prompt = ChatPromptTemplate.from_messages(
     [
         ("system", system_prompt),
@@ -247,7 +228,7 @@ class QuestionRequest(BaseModel):
     question: str
     session_id: str
 
-@app.post("/ask", response_class=PlainTextResponse)
+@app.post("/ask")
 async def ask_question(request: QuestionRequest):
     try:
         question = request.question
@@ -263,7 +244,7 @@ async def ask_question(request: QuestionRequest):
             if 'answer' in chunk and chunk['answer']:
                 response += chunk["answer"]
         
-        return response
+        return {"answer": response}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

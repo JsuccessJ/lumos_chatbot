@@ -15,6 +15,7 @@ from langchain_core.prompts import MessagesPlaceholder
 from langchain_core.runnables.history import RunnableWithMessageHistory
 
 from fastapi import FastAPI, WebSocket, HTTPException
+from fastapi.responses import PlainTextResponse  # PlainTextResponse 추가
 from pydantic import BaseModel
 
 # OpenAI API 키 설정
@@ -228,7 +229,7 @@ class QuestionRequest(BaseModel):
     question: str
     session_id: str
 
-@app.post("/ask")
+@app.post("/ask", response_class=PlainTextResponse)
 async def ask_question(request: QuestionRequest):
     try:
         question = request.question
@@ -244,7 +245,7 @@ async def ask_question(request: QuestionRequest):
             if 'answer' in chunk and chunk['answer']:
                 response += chunk["answer"]
         
-        return {"answer": response}
+        return response
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
